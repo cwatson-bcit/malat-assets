@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Craig Watson - Digital Network Visualization</title>
+
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 10px;
+        }
+
+        header {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin: 0 0 8px 0;
+        }
+
+        p {
+            color: #666;
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        #network-wrapper {
+            width: 100%;
+            height: 780px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            position: relative;
+            background-color: #ffffff;
+            margin: 0 auto;
+        }
+
+        #network-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+		.legend {
+			position: absolute;
+			top: 15px;
+			right: 15px;
+			z-index: 10;
+			background: rgba(255, 255, 255, 0.95);
+			padding: 12px 14px;
+			border-radius: 6px;
+			border: 1px solid #cbd5e1;
+			font-size: 0.82rem;
+			pointer-events: none;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		}
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .color-box {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <header>
+        <h1>LRNT521: Socio-Technical Network Mapping</h1>
+        <p>
+            Interactive NodeXL-style visualization showcasing boundary blurring and interconnected digital identity
+            across academic, professional, technical, and personal environments.
+        </p>
+    </header>
+
+    <div id="network-wrapper">
+        <div id="network-canvas"></div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #2c3e50;"></div>
+                <strong>Central Node</strong>&nbsp;(Craig Watson)
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #e67e22;"></div>
+                <strong>Major Categories</strong>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #3498db;"></div>
+                <strong>Platforms / Communities</strong>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #9b59b6;"></div>
+                <strong>Shared Cross-Over Nodes</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const nodeList = [];
+
+    function addNode(id, label, group, x, y, labelPosition = 'bottom', offsetX = 0, offsetY = 0, size = null) {
+		nodeList.push({
+			id,
+			label: '',
+			group,
+			x,
+			y,
+			fixed: false,
+			size: size || undefined
+		});
+
+		const offset = getLabelOffset(labelPosition);
+
+		nodeList.push({
+			id: `${id}_label`,
+			label,
+			shape: 'text',
+			x: x + offset.x + offsetX,
+			y: y + offset.y + offsetY,
+			fixed: true,
+			font: {
+				size: group === 'center' ? 26 : group === 'category' ? 22 : 20,
+				face: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+				color: '#1e293b',
+				strokeWidth: 6,
+				strokeColor: '#ffffff',
+				bold: group === 'category'
+			}
+		});
+	}
+
+	function getLabelOffset(position) {
+		switch (position) {
+			case 'left':
+				return { x: -70, y: 0 };
+			case 'right':
+				return { x: 80, y: 0 };
+			case 'top':
+				return { x: 0, y: -58 };
+			case 'bottom':
+			default:
+				return { x: 0, y: 48 };
+		}
+	}
+	
+    addNode('craig'		, 'Craig Watson'					, 'center'	, 0		, 0		, 'bottom'	, 125	, -45);
+
+    addNode('cat_pers'	, 'Personal &\nCommunity'			, 'category', 0		, -310	, 'bottom'	, -95	, -45);
+	addNode('family'	, 'Family'							, 'platform', -170	, -430	, 'left'	, 20	, -2);
+    addNode('soccer'	, 'Soccer Community'				, 'platform', -75	, -485	, 'bottom'	, -105	, -55);
+    addNode('travel'	, 'Travel'							, 'platform', 0		, -515	, 'bottom'	, -0	, -75);
+    addNode('friends'	, 'Friends'							, 'platform', 75	, -485	, 'bottom'	, 10	, -80);
+    addNode('youtube'	, 'YouTube'							, 'platform', 170	, -430	, 'bottom'	, 10	, -80);
+
+    addNode('cat_acad'	, 'Academic\nLearning'				, 'category', 330	, -60	, 'bottom'	, -0	, -105);
+    addNode('rru'		, 'Royal Roads University'			, 'platform', 545	, -235	, 'bottom'	, -0	, -80);
+    addNode('malat'		, 'MALAT'							, 'platform', 620	, -145	, 'bottom'	, -0	, -80);
+    addNode('lrnt521'	, 'LRNT521'							, 'platform', 625	, -55	, 'bottom'	, -0	, -80);
+    addNode('moodle'	, 'Moodle'							, 'platform', 600	, 35	, 'bottom'	, -0	, -80);
+    addNode('zoom'		, 'Zoom'							, 'platform', 535	, 120	, 'bottom'	, 50	, -45);
+    addNode('readings'	, 'Academic Readings'				, 'platform', 455	, 185	, 'bottom'	, 10	, -15);
+
+    addNode('cat_teach'	, 'Teaching &\nLeadership'			, 'category', 155	, 320	, 'bottom'	, 95	, -50);
+    addNode('career'	, 'Career Services'					, 'platform', -25	, 390	, 'bottom'	, -90	, -48);
+    addNode('faculty'	, 'Faculty'							, 'platform', 25	, 450	, 'bottom'	, -25	, -22);
+    addNode('alumni'	, 'Alumni'							, 'platform', 95	, 485	, 'bottom'	, -21	, -18);
+    addNode('students'	, 'Students'						, 'platform', 175	, 490	, 'bottom'	, -0	, -17);
+    addNode('ssd'		, 'SSD Program\nBCIT'				, 'platform', 255	, 470	, 'bottom'	, 45	, -5);
+    addNode('sponsors'	, 'Industry Sponsors'				, 'platform', 320	, 430	, 'bottom'	, 102	, -45);
+
+    addNode('cat_tech'	, 'Technical\nDevelopment'			, 'category', -315	, 180	, 'bottom'	, 40	, 10);
+    addNode('gemini'	, 'Gemini'							, 'platform', -455	, 45	, 'bottom'	, -5	, -75);
+    addNode('angular'	, 'Angular'							, 'platform', -500	, 110	, 'bottom'	, -45	, -68);
+    addNode('dotnet'	, '.NET'							, 'platform', -520	, 190	, 'bottom'	, -40	, -48);
+    addNode('vstudio'	, 'Visual Studio'					, 'platform', -500	, 270	, 'bottom'	, -25	, -18);
+    addNode('claude'	, 'Claude Code'						, 'platform', -425	, 335	, 'bottom'	, -5	, -18);
+
+    addNode('cat_pres'	, 'Professional\nDigital Presence'  , 'category', -285	, -170	, 'bottom'	, 30	, -105);
+    addNode('website'	, 'Personal Website'				, 'platform', -470	, -275	, 'bottom'	, -0	, -80);
+
+    addNode('wordpress'	, 'WordPress Blog'					, 'shared'	, 130	, -220	, 'bottom'	, 100	, -49);
+    addNode('github'	, 'GitHub'							, 'shared'	, -390	, -50	, 'bottom'	, 61	, -45);
+    addNode('email'		, 'Email'							, 'shared'	, -255	, 35	, 'bottom'	, -55	, -50);
+    addNode('linkedin'	, 'LinkedIn'						, 'shared'	, -80	, 245	, 'bottom'	, -7	, -9);
+    addNode('chatgpt'	, 'ChatGPT'							, 'shared'	, 160	, 135	, 'bottom'	, 70	, -45);
+
+    const nodes = new vis.DataSet(nodeList);
+
+    const edges = new vis.DataSet([
+        { from: 'craig', to: 'cat_pers', width: 4 },
+        { from: 'craig', to: 'cat_acad', width: 4 },
+        { from: 'craig', to: 'cat_teach', width: 4 },
+        { from: 'craig', to: 'cat_tech', width: 4 },
+        { from: 'craig', to: 'cat_pres', width: 4 },
+
+        { from: 'cat_pers', to: 'family' },
+        { from: 'cat_pers', to: 'soccer' },
+        { from: 'cat_pers', to: 'friends' },
+        { from: 'cat_pers', to: 'youtube' },
+        { from: 'cat_pers', to: 'travel' },
+
+        { from: 'cat_acad', to: 'rru' },
+        { from: 'cat_acad', to: 'malat' },
+        { from: 'cat_acad', to: 'lrnt521' },
+        { from: 'cat_acad', to: 'moodle' },
+        { from: 'cat_acad', to: 'zoom' },
+        { from: 'cat_acad', to: 'readings' },
+
+        { from: 'cat_teach', to: 'sponsors' },
+        { from: 'cat_teach', to: 'ssd' },
+        { from: 'cat_teach', to: 'students' },
+        { from: 'cat_teach', to: 'alumni' },
+        { from: 'cat_teach', to: 'faculty' },
+        { from: 'cat_teach', to: 'career' },
+
+        { from: 'cat_tech', to: 'vstudio' },
+        { from: 'cat_tech', to: 'dotnet' },
+        { from: 'cat_tech', to: 'angular' },
+        { from: 'cat_tech', to: 'gemini' },
+        { from: 'cat_tech', to: 'claude' },
+
+        { from: 'cat_pres', to: 'website' },
+
+        { from: 'cat_tech', to: 'github', width: 2.5, color: { color: '#8e44ad' } },
+        { from: 'cat_pres', to: 'github', width: 2.5, color: { color: '#8e44ad' } },
+
+        { from: 'cat_pres', to: 'linkedin', width: 2.5, color: { color: '#8e44ad' } },
+        { from: 'cat_teach', to: 'linkedin', width: 2.5, color: { color: '#8e44ad' } },
+
+        { from: 'cat_acad', to: 'wordpress', width: 2.5, color: { color: '#8e44ad' } },
+        { from: 'cat_pres', to: 'wordpress', width: 2.5, color: { color: '#8e44ad' } },
+
+        { from: 'cat_pres', to: 'email', width: 2.5, color: { color: '#8e44ad' } },
+        { from: 'cat_teach', to: 'email', width: 2.5, color: { color: '#8e44ad' } },
+
+        { from: 'cat_tech', to: 'chatgpt', width: 2.5, color: { color: '#8e44ad' } },
+        { from: 'cat_teach', to: 'chatgpt', width: 2.5, color: { color: '#8e44ad' } },
+        { from: 'cat_acad', to: 'chatgpt', width: 2.5, color: { color: '#8e44ad' } }
+    ]);
+
+	const options = {
+		nodes: {
+			shape: 'dot',
+			labelHighlightBold: false,
+			borderWidth: 2
+		},
+
+		edges: {
+            color: {
+                color: '#cbd5e1',
+                highlight: '#94a3b8'
+            },
+            width: 1.5,
+            smooth: {
+                type: 'continuous',
+                roundness: 0.25
+            }
+        },
+
+        groups: {
+            center: {
+                color: {
+                    background: '#2c3e50',
+                    border: '#1a252f'
+                },
+                size: 40
+            },
+            category: {
+                color: {
+                    background: '#e67e22',
+                    border: '#d35400'
+                },
+                size: 32
+            },
+            platform: {
+                color: {
+                    background: '#3498db',
+                    border: '#2980b9'
+                },
+                size: 16
+            },
+            shared: {
+                color: {
+                    background: '#9b59b6',
+                    border: '#8e44ad'
+                },
+                size: 22,
+                borderWidth: 3
+            }
+        },
+
+        physics: {
+            enabled: false
+        },
+
+        interaction: {
+            dragNodes: true,
+            zoomView: true,
+            dragView: true,
+            hover: true,
+            keyboard: false
+        },
+        // ADD THIS SEGMENT BELOW INTERACTION:
+        configure: {
+            enabled: false
+        }
+    };
+
+    const container = document.getElementById('network-canvas');
+    const network = new vis.Network(container, { nodes, edges }, options);
+
+	network.once("afterDrawing", function() {
+		network.fit({
+			animation: false,
+			padding: 80
+		});
+	});
+</script>
+</body>
+</html>
